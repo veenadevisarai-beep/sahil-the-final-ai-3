@@ -1,11 +1,16 @@
 from flask import Flask, request, jsonify, send_from_directory
 from knowledge import answer, resolve
-import ollama
+from groq import Groq
+import os
 import re
 
 app = Flask(__name__)
 
-OLLAMA_MODEL = "llama3.2:3b"
+GROQ_MODEL = "openai/gpt-oss-20b"
+
+client = Groq(
+    api_key=os.environ.get("GROQ_API_KEY")
+)
 
 conversation = []
 last_topic = ""
@@ -19,14 +24,17 @@ History, Geography, Political Science, Economics.
 
 IMPORTANT:
 
-- Answer only Class 9 Social Science questions.
+- Answer Class 9 Social Science questions.
 - Use simple language suitable for Class 9.
 - Stay focused on the student's requested topic.
 - Never change the topic unless the student asks you to.
+- You can explain concepts, answer questions, create practice questions,
+  create MCQs, and give examples.
 
 FOLLOW-UP QUESTIONS:
 
 If the student says:
+
 "explain it"
 "explain this"
 "explain that"
@@ -41,6 +49,7 @@ use the previous topic supplied by the application.
 QUESTION GENERATION:
 
 If the student asks:
+
 "make 10 questions"
 "give 10 questions"
 "create 10 questions"
@@ -48,20 +57,12 @@ If the student asks:
 
 generate exactly 10 questions about the current topic.
 
-If the student asks for 5 questions, generate exactly 5.
+If they ask for 5 questions, generate exactly 5.
 If they ask for 20, generate exactly 20.
 
-For example:
-
-Previous topic: Plate Tectonics
-Student: make 10 questions about it
-
-You MUST generate 10 questions about Plate Tectonics.
-
-Do NOT generate questions about random Social Science chapters.
-
 MCQs:
-If the student asks for MCQs, give MCQs with four options.
+
+If the student asks for MCQs, give four options.
 
 If the student asks for answers, give the answers.
 
@@ -73,7 +74,7 @@ Do not pretend information is from NCERT unless you are confident.
 """
 
 
-def ask_ollama(question, topic=""):
+def ask_ai(question, topic=""):
     global conversation
 
     context = ""
@@ -93,7 +94,7 @@ def ask_ollama(question, topic=""):
     })
 
     if len(conversation) > 16:
-        conversation = conversation[-16:]
+        conversation[:] = conversation[-16:]
 
     messages = [
         {
@@ -104,12 +105,13 @@ def ask_ollama(question, topic=""):
 
     messages.extend(conversation)
 
-    response = ollama.chat(
-        model=OLLAMA_MODEL,
-        messages=messages
+    response = client.chat.completions.create(
+        model=GROQ_MODEL,
+        messages=messages,
+        temperature=0.3
     )
 
-    result = response["message"]["content"].strip()
+    result = response.choices[0].message.content.strip()
 
     conversation.append({
         "role": "assistant",
@@ -123,10 +125,6 @@ def ask_ollama(question, topic=""):
 
 
 def extract_topic(question):
-    """
-    Try to find the main topic from the student's question.
-    """
-
     patterns = [
         r"(?:about|on)\s+(.+)",
         r"(?:explain|describe|define)\s+(.+)",
@@ -134,7 +132,11 @@ def extract_topic(question):
     ]
 
     for pattern in patterns:
-        match = re.search(pattern, question, re.IGNORECASE)
+        match = re.search(
+            pattern,
+            question,
+            re.IGNORECASE
+        )
 
         if match:
             topic = match.group(1).strip()
@@ -209,9 +211,7 @@ def ask():
 
     try:
 
-        # -----------------------------------
-        # FOLLOW-UP QUESTION
-        # -----------------------------------
+        # FOLLOW-UP
 
         if is_followup(question) and last_topic:
 
@@ -222,7 +222,7 @@ def ask():
                 + question
             )
 
-            result = ask_ollama(
+            result = ask_ai(
                 prompt,
                 last_topic
             )
@@ -232,9 +232,7 @@ def ask():
             })
 
 
-        # -----------------------------------
         # QUESTION GENERATION
-        # -----------------------------------
 
         if is_question_generation(question) and last_topic:
 
@@ -252,7 +250,7 @@ def ask():
                 + "."
             )
 
-            result = ask_ollama(
+            result = ask_ai(
                 prompt,
                 last_topic
             )
@@ -262,9 +260,7 @@ def ask():
             })
 
 
-        # -----------------------------------
-        # NORMAL SST KNOWLEDGE BASE
-        # -----------------------------------
+        # KNOWLEDGE BASE
 
         result = resolve(question)
 
@@ -272,7 +268,6 @@ def ask():
 
             ai_answer = answer(question)
 
-            # Try to remember the topic
             topic = extract_topic(question)
 
             if topic:
@@ -296,16 +291,14 @@ def ask():
             })
 
 
-        # -----------------------------------
-        # OLLAMA
-        # -----------------------------------
+        # CLOUD AI
 
         topic = extract_topic(question)
 
         if topic:
             last_topic = topic
 
-        result = ask_ollama(
+        result = ask_ai(
             question,
             last_topic
         )
@@ -324,6 +317,7 @@ def ask():
 
 @app.route("/new-chat", methods=["POST"])
 def new_chat():
+
     global conversation
     global last_topic
 
@@ -341,6 +335,7 @@ def static_files(filename):
 
 
 if __name__ == "__main__":
+
     app.run(
         host="127.0.0.1",
         port=5000,
