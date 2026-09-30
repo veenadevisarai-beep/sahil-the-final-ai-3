@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>SST AI Tutor</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <div class="app">
+
+        <!-- Sidebar -->
+        <aside class="sidebar">
+
+            <div class="logo">
+                
+
+                <div>
+                    <h2>SST AI</h2>
+                    <span>Class 9 Tutor</span>
+                </div>
+            </div>
+
+            <button class="new-chat" onclick="newChat()">
+                ＋ New Chat
+            </button>
+
+            <div class="menu">
+
+                <p class="menu-title">SUBJECTS</p>
+
+                <button onclick="selectSubject('History')">
+                    🏺 History
+                </button>
+
+                <button onclick="selectSubject('Geography')">
+                    🌍 Geography
+                </button>
+
+                <button onclick="selectSubject('Political Science')">
+                    🏛️ Political Science
+                </button>
+
+                <button onclick="selectSubject('Economics')">
+                    💰 Economics
+                </button>
+
+            </div>
+
+            <div class="sidebar-bottom">
+                <p>📚 Class 9 NCERT</p>
+                <p>🎓 SST Learning Assistant</p>
+            </div>
+
+        </aside>
+
+
+        <!-- Main Chat -->
+        <main class="main">
+
+            <header class="topbar">
+                <div>
+                    <h1> SST AI Tutor</h1>
+                    <p>Your Class 9 Social Science learning assistant</p>
+                </div>
+
+                <div class="status">
+                    <span></span> Online
+                </div>
+            </header>
+
+
+            <section class="chat-area" id="chatArea">
+
+                <div class="welcome">
+
+                    <img src="logo/sst_ai_logo.png" alt="SST AI Logo">
+                        
+                    </div>
+
+                    <h2>Welcome to SST AI!</h2>
+
+                    <p>
+                        Ask me anything about your Class 9 Social Science subjects.
+                    </p>
+
+                    <div class="subject-cards">
+
+                        <button onclick="selectSubject('History')">
+                            🏺
+                            <strong>History</strong>
+                            <small>Events & civilizations</small>
+                        </button>
+
+                        <button onclick="selectSubject('Geography')">
+                            🌍
+                            <strong>Geography</strong>
+                            <small>Earth & environment</small>
+                        </button>
+
+                        <button onclick="selectSubject('Political Science')">
+                            🏛️
+                            <strong>Political Science</strong>
+                            <small>Democracy & government</small>
+                        </button>
+
+                        <button onclick="selectSubject('Economics')">
+                            💰
+                            <strong>Economics</strong>
+                            <small>People & economy</small>
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- Input -->
+            <div class="input-area">
+
+                <div class="input-box">
+
+                    <textarea
+                        id="question"
+                        placeholder="Ask your SST question..."
+                        rows="1"
+                        onkeydown="handleEnter(event)"
+                    ></textarea>
+
+                    <button onclick="askQuestion()" class="send">
+                        ➤
+                    </button>
+
+                </div>
+
+                <p class="disclaimer">
+                    SST AI is a school learning project. Check your NCERT textbook for important answers.
+                </p>
+
+            </div>
+
+        </main>
+
+    </div>
+
+    <script src="script.js"></script>
+
+</body>
+</html>
